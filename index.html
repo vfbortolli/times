@@ -352,6 +352,18 @@
     font-style: italic;
     font-weight: normal;
   }
+  .time-card td.apelido-col,
+  .time-card td.vazio-col {
+    cursor: grab;
+  }
+  .time-card td.drag-over {
+    background: #ffe999 !important;
+    outline: 2px dashed #1e5631;
+  }
+  .time-card td.dragging {
+    opacity: 0.4;
+  }
+
   .aviso-sorteio {
     font-size: 13px;
     padding: 8px 12px;
@@ -1188,6 +1200,10 @@ function renderizarTimes(times) {
 
 
       const tdApelido = document.createElement('td');
+      tdApelido.dataset.time = idx;
+      tdApelido.dataset.num = n;
+      tdApelido.draggable = true;
+
       if (time[n]) {
         tdApelido.className = 'apelido-col';
         tdApelido.textContent = time[n];
@@ -1195,10 +1211,40 @@ function renderizarTimes(times) {
         tdApelido.className = 'vazio-col';
         tdApelido.textContent = '(vazio)';
       }
+
+      tdApelido.addEventListener('dragstart', function(e) {
+        tdApelido.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', JSON.stringify({ time: idx, num: n }));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      tdApelido.addEventListener('dragend', function() {
+        tdApelido.classList.remove('dragging');
+      });
+
+      tdApelido.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        tdApelido.classList.add('drag-over');
+      });
+
+      tdApelido.addEventListener('dragleave', function() {
+        tdApelido.classList.remove('drag-over');
+      });
+
+      tdApelido.addEventListener('drop', function(e) {
+        e.preventDefault();
+        tdApelido.classList.remove('drag-over');
+        const origem = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const destino = { time: idx, num: n };
+        trocarJogadoresNoSorteio(origem, destino);
+      });
+
       tr.appendChild(tdApelido);
 
       tbody.appendChild(tr);
     }
+
 
     table.appendChild(tbody);
     card.appendChild(table);
@@ -1206,7 +1252,22 @@ function renderizarTimes(times) {
   });
 }
 
+function trocarJogadoresNoSorteio(origem, destino) {
+  if (!ultimoSorteio) return;
+  if (origem.time === destino.time && origem.num === destino.num) return;
+
+  const valorOrigem = ultimoSorteio[origem.time][origem.num];
+  const valorDestino = ultimoSorteio[destino.time][destino.num];
+
+  // Troca simples (swap), sem qualquer validação/regra
+  ultimoSorteio[origem.time][origem.num] = valorDestino;
+  ultimoSorteio[destino.time][destino.num] = valorOrigem;
+
+  renderizarTimes(ultimoSorteio);
+}
+
 function exportarTimesCsv() {
+
   if (!ultimoSorteio) {
     mostrarAvisoSorteio('Nenhum sorteio realizado ainda. Clique em "Sortear Equipes" primeiro.');
     return;
