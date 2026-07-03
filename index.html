@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classificação de Jogadores</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #1e5631 0%, #2d7a3e 100%);
+    margin: 0;
+    padding: 20px;
+    color: #222;
+  }
+  h1 {
+    text-align: center;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    margin-bottom: 5px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #eaffea;
+    margin-bottom: 25px;
+    font-size: 14px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+  .card h2 {
+    margin-top: 0;
+    color: #1e5631;
+    border-bottom: 2px solid #1e5631;
+    padding-bottom: 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px 10px;
+    text-align: left;
+  }
+  thead th {
+    background: #1e5631;
+    color: #fff;
+  }
+  tbody tr:nth-child(even) {
+    background: #f7f7f7;
+  }
+  tbody tr.classificado {
+    background: #ffd966 !important;
+    font-weight: bold;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+  }
+  select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #fff;
+  }
+  .num-input {
+    width: 60px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  .btn {
+    background: #1e5631;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 8px;
+  }
+  .btn:hover {
+    background: #164221;
+  }
+  .btn-danger {
+    background: #c0392b;
+  }
+  .btn-danger:hover {
+    background: #922b21;
+  }
+  .toolbar {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .escalacao-table {
+    table-layout: fixed;
+  }
+  .escalacao-table th {
+    background: #1e5631;
+    color: #fff;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px 4px;
+  }
+  .escalacao-table td {
+    text-align: center;
+    vertical-align: top;
+    padding: 8px 4px;
+    background: #eafaf1;
+    min-height: 80px;
+  }
+  .escalacao-table .apelido-chip {
+    display: block;
+    background: #1e5631;
+    color: #fff;
+    border-radius: 4px;
+    padding: 4px 2px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    word-break: break-word;
+  }
+  .escalacao-table .vazio-txt {
+    color: #aaa;
+    font-style: italic;
+    font-size: 13px;
+  }
+  .escalacao-table .linha-contagem td {
+    background: #1e5631;
+    color: #fff;
+    font-weight: bold;
+    font-size: 15px;
+  }
+
+  .remove-btn {
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .remove-btn:hover {
+    background: #922b21;
+  }
+  footer {
+    text-align: center;
+    color: #eaffea;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .legend {
+    font-size: 13px;
+    color: #444;
+    margin-top: 10px;
+  }
+  .legend span {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .legend .amarelo { background: #ffd966; }
+  .badge-posicao {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+  }
+  .pos-goleiro { background: #f39c12; }
+  .pos-zagueiro { background: #2980b9; }
+  .pos-lateral { background: #16a085; }
+  .pos-meio { background: #8e44ad; }
+  .pos-atacante { background: #c0392b; }
+  .filtros {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 15px;
+    padding: 12px;
+    background: #f2f7f3;
+    border-radius: 8px;
+    border: 1px solid #d5e8d8;
+  }
+  .filtro-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+  }
+  .filtro-item label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #1e5631;
+    margin-bottom: 4px;
+  }
+  .filtro-item select {
+    width: 100%;
+  }
+  .sem-resultado {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 15px;
+  }
+  .resumo {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+  }
+  .resumo-card {
+    background: #f2f7f3;
+    border: 1px solid #d5e8d8;
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 90px;
+  }
+  .resumo-card .valor {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1e5631;
+  }
+  .resumo-card .rotulo {
+    font-size: 11px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .resumo-card.total {
+    background: #1e5631;
+    border-color: #1e5631;
+  }
+  .resumo-card.total .valor,
+  .resumo-card.total .rotulo {
+    color: #fff;
+  }
+
+  .import-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .file-label {
+    background: #2980b9;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-block;
+  }
+  .file-label:hover {
+    background: #21618c;
+  }
+  .import-msg {
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-top: 10px;
+    display: none;
+  }
+  .import-msg.sucesso {
+    background: #d4efdf;
+    color: #196f3d;
+    display: block;
+  }
+  .import-msg.erro {
+    background: #fadbd8;
+    color: #922b21;
+    display: block;
+  }
+  .import-msg.aviso {
+    background: #fef9e7;
+    color: #7d6608;
+    display: block;
+  }
+  .sorteio-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+  }
+  .sorteio-toolbar input[type="number"] {
+    width: 80px;
+    padding: 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .times-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  .time-card {
+    border: 2px solid #1e5631;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .time-card h3 {
+    background: #1e5631;
+    color: #fff;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+  }
+  .time-card table {
+    width: 100%;
+  }
+  .time-card td {
+    padding: 6px 10px;
+    border: 1px solid #e0e0e0;
+  }
+  .time-card td.num-col {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+    background: #f2f7f3;
+    color: #1e5631;
+  }
+  .time-card td.apelido-col {
+    font-weight: 600;
+  }
+  .time-card td.vazio-col {
+    color: #aaa;
+    font-style: italic;
+    font-weight: normal;
+  }
+  .aviso-sorteio {
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background: #fef9e7;
+    color: #7d6608;
+    display: none;
+  }
+  .config-max {
+    max-width: 1100px;
+    margin: 0 auto 20px auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .config-max label {
+    font-weight: bold;
+    color: #1e5631;
+  }
+  .config-max input[type="number"] {
+    width: 80px;
+    padding: 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .config-max .info {
+    font-size: 12px;
+    color: #666;
+  }
+</style>
+
+
+
+</head>
+<body>
+
+<h1>⚽ Classificação de Jogadores</h1>
+<div class="subtitle">Cadastre os jogadores, atribua uma classificação e veja o resultado agrupado automaticamente. Vários jogadores podem receber o mesmo número — isso será usado depois no sorteio dos times.</div>
+
+<div class="config-max">
+  <label for="maxClassificacao">Quantidade máxima de classificação:</label>
+  <input type="number" id="maxClassificacao" min="2" max="99" value="11" onchange="atualizarMaxClassificacao()">
+  <span class="info">Define até qual número (1 até esse valor) os jogadores podem ser classificados. Altera automaticamente a lista, a tabela agrupada e o sorteio.</span>
+</div>
+
+<div class="container">
+
+
+  <div class="card">
+    <h2>Lista de Jogadores</h2>
+    <div class="toolbar import-area">
+      <button class="btn" onclick="adicionarJogador()">+ Adicionar Jogador</button>
+      <button class="btn btn-danger" onclick="limparTudo()">Limpar Tudo</button>
+      <label class="file-label" for="inputCsv">📥 Importar CSV</label>
+      <input type="file" id="inputCsv" accept=".csv" style="display:none" onchange="importarCsv(event)">
+      <button class="btn" style="background:#7f8c8d" onclick="baixarModeloCsv()">Baixar modelo CSV</button>
+      <button class="btn" style="background:#16a085" onclick="exportarCsv()">💾 Exportar CSV (backup)</button>
+    </div>
+
+    <div id="msgImportacao" class="import-msg"></div>
+    <div class="resumo" id="resumo"></div>
+    <div class="filtros">
+
+
+      <div class="filtro-item">
+        <label for="filtroPosicao">Filtrar por Posição</label>
+        <select id="filtroPosicao" onchange="renderizar()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <label for="filtroClassificacao" id="labelFiltroClassificacao">Filtrar por Classificação</label>
+        <select id="filtroClassificacao" onchange="renderizar()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <button class="btn" style="margin-top:2px" onclick="limparFiltros()">Limpar Filtros</button>
+      </div>
+    </div>
+    <table id="tabelaJogadores">
+
+      <thead>
+        <tr>
+          <th style="width: 25%">Nome</th>
+          <th style="width: 20%">Apelido</th>
+          <th style="width: 20%">Posição</th>
+          <th style="width: 15%">Classificação (1-11)</th>
+          <th style="width: 10%">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="corpoTabela">
+      </tbody>
+    </table>
+    <div class="legend">
+      <span class="amarelo"></span> Jogador classificado (número de 1 até o máximo definido preenchido)
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h2 id="tituloClassAgrupada">Classificação Agrupada (1 a 11)</h2>
+
+    <table class="escalacao-table" id="tabelaEscalacao">
+      <thead>
+        <tr id="cabecalhoEscalacao"></tr>
+      </thead>
+      <tbody>
+        <tr id="corpoEscalacao"></tr>
+        <tr id="linhaContagem" class="linha-contagem"></tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="card">
+    <h2>🎲 Sorteio de Equipes</h2>
+    <div class="sorteio-toolbar">
+      <label for="qtdTimes"><strong>Quantidade de equipes:</strong></label>
+      <input type="number" id="qtdTimes" min="2" max="20" value="2">
+      <button class="btn" onclick="sortearEquipes()">Sortear Equipes</button>
+      <button class="btn" style="background:#16a085" onclick="exportarTimesCsv()">💾 Exportar Times (CSV)</button>
+    </div>
+    <div id="avisoSorteio" class="aviso-sorteio"></div>
+    <div class="times-container" id="timesContainer"></div>
+  </div>
+
+</div>
+
+
+<footer>Dados salvos automaticamente no seu navegador (localStorage)</footer>
+
+<script>
+const STORAGE_KEY = 'classificacao_jogadores_v2';
+const MAX_CLASS_KEY = 'classificacao_max_v1';
+let jogadores = [];
+let MAX_CLASSIFICACAO = 11;
+
+const POSICOES = ['Goleiro', 'Zagueiro', 'Lateral', 'Meio', 'Atacante'];
+
+function carregarMaxClassificacao() {
+  const salvo = localStorage.getItem(MAX_CLASS_KEY);
+  if (salvo) {
+    const n = parseInt(salvo, 10);
+    if (!isNaN(n) && n >= 2 && n <= 99) {
+      MAX_CLASSIFICACAO = n;
+    }
+  }
+  document.getElementById('maxClassificacao').value = MAX_CLASSIFICACAO;
+}
+
+function atualizarMaxClassificacao() {
+  const input = document.getElementById('maxClassificacao');
+  let n = parseInt(input.value, 10);
+  if (isNaN(n) || n < 2) n = 2;
+  if (n > 99) n = 99;
+  MAX_CLASSIFICACAO = n;
+  input.value = n;
+  localStorage.setItem(MAX_CLASS_KEY, String(n));
+  atualizarTitulosEPlaceholders();
+  renderizar();
+}
+
+function atualizarTitulosEPlaceholders() {
+  const titulo = document.getElementById('tituloClassAgrupada');
+  if (titulo) titulo.textContent = `Classificação Agrupada (1 a ${MAX_CLASSIFICACAO})`;
+
+  const thClass = document.querySelector('#tabelaJogadores thead th:nth-child(4)');
+  if (thClass) thClass.textContent = `Classificação (1-${MAX_CLASSIFICACAO})`;
+
+  const legendaTxt = document.querySelector('.legend');
+  if (legendaTxt) {
+    legendaTxt.innerHTML = `<span class="amarelo"></span> Jogador classificado (número de 1 a ${MAX_CLASSIFICACAO} preenchido)`;
+  }
+}
+
+
+function carregar() {
+  const salvo = localStorage.getItem(STORAGE_KEY);
+  if (salvo) {
+    try {
+      jogadores = JSON.parse(salvo);
+    } catch(e) {
+      jogadores = [];
+    }
+  }
+  if (jogadores.length === 0) {
+    for (let i = 0; i < 11; i++) {
+      jogadores.push({ nome: '', apelido: '', posicao: '', classificacao: '' });
+    }
+  }
+}
+
+
+let alteracoesNaoExportadas = false;
+
+function salvar() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadores));
+  alteracoesNaoExportadas = true;
+}
+
+
+function adicionarJogador() {
+  jogadores.push({ nome: '', apelido: '', posicao: '', classificacao: '' });
+  salvar();
+  renderizar();
+}
+
+function removerJogador(idx) {
+  jogadores.splice(idx, 1);
+  salvar();
+  renderizar();
+}
+
+function limparTudo() {
+  if (confirm('Tem certeza que deseja limpar todos os jogadores?')) {
+    jogadores = [];
+    for (let i = 0; i < 11; i++) {
+      jogadores.push({ nome: '', apelido: '', posicao: '', classificacao: '' });
+    }
+    salvar();
+    renderizar();
+  }
+}
+
+function atualizarCampo(idx, campo, valor) {
+  jogadores[idx][campo] = valor;
+  salvar();
+  renderizarEscalacaoELinhas();
+}
+
+function classePosicao(posicao) {
+  switch(posicao) {
+    case 'Goleiro': return 'pos-goleiro';
+    case 'Zagueiro': return 'pos-zagueiro';
+    case 'Lateral': return 'pos-lateral';
+    case 'Meio': return 'pos-meio';
+    case 'Atacante': return 'pos-atacante';
+    default: return '';
+  }
+}
+
+function mostrarMsgImportacao(texto, tipo) {
+  const el = document.getElementById('msgImportacao');
+  el.textContent = texto;
+  el.className = 'import-msg ' + tipo;
+}
+
+function normalizarPosicao(valor) {
+  if (!valor) return '';
+  const v = valor.trim().toLowerCase();
+  const encontrada = POSICOES.find(p => p.toLowerCase() === v);
+  if (encontrada) return encontrada;
+  // aceitar variações comuns
+  if (v.startsWith('gol')) return 'Goleiro';
+  if (v.startsWith('zag')) return 'Zagueiro';
+  if (v.startsWith('lat')) return 'Lateral';
+  if (v.startsWith('mei') || v.startsWith('vol')) return 'Meio';
+  if (v.startsWith('ata')) return 'Atacante';
+  return '';
+}
+
+function normalizarClassificacao(valor) {
+  if (valor === undefined || valor === null) return '';
+  const v = String(valor).trim();
+  if (v === '') return '';
+  const n = parseInt(v, 10);
+  if (!isNaN(n) && n >= 1 && n <= MAX_CLASSIFICACAO) return String(n);
+  return '';
+}
+
+
+// Parser simples de linha CSV, respeitando aspas e vírgula/ponto-e-vírgula como separador
+function parseLinhaCsv(linha, separador) {
+  const campos = [];
+  let atual = '';
+  let dentroAspas = false;
+  for (let i = 0; i < linha.length; i++) {
+    const c = linha[i];
+    if (c === '"') {
+      if (dentroAspas && linha[i+1] === '"') {
+        atual += '"';
+        i++;
+      } else {
+        dentroAspas = !dentroAspas;
+      }
+    } else if (c === separador && !dentroAspas) {
+      campos.push(atual);
+      atual = '';
+    } else {
+      atual += c;
+    }
+  }
+  campos.push(atual);
+  return campos.map(c => c.trim());
+}
+
+function detectarSeparador(primeiraLinha) {
+  const qtdVirgula = (primeiraLinha.match(/,/g) || []).length;
+  const qtdPontoVirgula = (primeiraLinha.match(/;/g) || []).length;
+  return qtdPontoVirgula > qtdVirgula ? ';' : ',';
+}
+
+function importarCsv(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+
+  const leitor = new FileReader();
+  leitor.onload = function(e) {
+    const texto = e.target.result;
+    const linhas = texto.split(/\r\n|\n|\r/).filter(l => l.trim() !== '');
+
+    if (linhas.length === 0) {
+      mostrarMsgImportacao('O arquivo CSV está vazio.', 'erro');
+      return;
+    }
+
+    const separador = detectarSeparador(linhas[0]);
+
+    // Detectar se a primeira linha é cabeçalho (contém as palavras esperadas)
+    let indiceInicio = 0;
+    const primeiraLower = linhas[0].toLowerCase();
+    if (primeiraLower.includes('nome') || primeiraLower.includes('apelido') || primeiraLower.includes('posi') || primeiraLower.includes('classifica')) {
+      indiceInicio = 1;
+    }
+
+    const novosJogadores = [];
+    let linhasIgnoradas = 0;
+
+    for (let i = indiceInicio; i < linhas.length; i++) {
+      const campos = parseLinhaCsv(linhas[i], separador);
+      const nome = (campos[0] || '').trim();
+      const apelido = (campos[1] || '').trim();
+      const posicaoBruta = (campos[2] || '').trim();
+      const classificacaoBruta = (campos[3] || '').trim();
+
+      // Regra: nome ou apelido precisa existir (pelo menos um dos dois)
+      if (!nome && !apelido) {
+        linhasIgnoradas++;
+        continue;
+      }
+
+      novosJogadores.push({
+        nome: nome,
+        apelido: apelido,
+        posicao: normalizarPosicao(posicaoBruta),
+        classificacao: normalizarClassificacao(classificacaoBruta)
+      });
+    }
+
+    if (novosJogadores.length === 0) {
+      mostrarMsgImportacao('Nenhum jogador válido encontrado no CSV. Verifique se pelo menos Nome ou Apelido está preenchido em cada linha.', 'erro');
+      event.target.value = '';
+      return;
+    }
+
+    // Se a lista atual só tem jogadores vazios, substitui; senão, acrescenta
+    const listaAtualVazia = jogadores.every(j => !j.nome && !j.apelido && !j.posicao && !j.classificacao);
+    if (listaAtualVazia) {
+      jogadores = novosJogadores;
+    } else {
+      jogadores = jogadores.concat(novosJogadores);
+    }
+
+    salvar();
+    renderizar();
+
+    let msg = `${novosJogadores.length} jogador(es) importado(s) com sucesso!`;
+    if (linhasIgnoradas > 0) {
+      msg += ` (${linhasIgnoradas} linha(s) ignorada(s) por não ter Nome nem Apelido)`;
+      mostrarMsgImportacao(msg, 'aviso');
+    } else {
+      mostrarMsgImportacao(msg, 'sucesso');
+    }
+
+    event.target.value = '';
+  };
+
+  leitor.onerror = function() {
+    mostrarMsgImportacao('Erro ao ler o arquivo CSV.', 'erro');
+  };
+
+  leitor.readAsText(arquivo, 'UTF-8');
+}
+
+function baixarModeloCsv() {
+  const conteudo = 'Nome,Apelido,Posicao,Classificacao\n' +
+    'João da Silva,Joãozinho,Atacante,9\n' +
+    'Carlos Souza,Carlão,Zagueiro,4\n' +
+    ',Meião,Meio,8\n';
+  const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'modelo_jogadores.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function escaparCampoCsv(valor) {
+  const v = (valor === null || valor === undefined) ? '' : String(valor);
+  if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+    return '"' + v.replace(/"/g, '""') + '"';
+  }
+  return v;
+}
+
+function exportarCsv() {
+  let conteudo = 'Nome,Apelido,Posicao,Classificacao\n';
+  jogadores.forEach(j => {
+    // Ignora linhas totalmente vazias na exportação
+    if (!j.nome && !j.apelido && !j.posicao && !j.classificacao) return;
+    conteudo += [
+      escaparCampoCsv(j.nome),
+      escaparCampoCsv(j.apelido),
+      escaparCampoCsv(j.posicao),
+      escaparCampoCsv(j.classificacao)
+    ].join(',') + '\n';
+  });
+
+  const agora = new Date();
+  const timestamp = agora.getFullYear() + '-' +
+    String(agora.getMonth() + 1).padStart(2, '0') + '-' +
+    String(agora.getDate()).padStart(2, '0') + '_' +
+    String(agora.getHours()).padStart(2, '0') + '-' +
+    String(agora.getMinutes()).padStart(2, '0');
+
+  const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `classificacao_jogadores_${timestamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  alteracoesNaoExportadas = false;
+  mostrarMsgImportacao('Backup exportado com sucesso! Arquivo CSV baixado.', 'sucesso');
+}
+
+// Aviso ao tentar fechar a aba/navegador se houver alterações não exportadas
+window.addEventListener('beforeunload', function (e) {
+  if (alteracoesNaoExportadas) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
+
+
+function popularFiltros() {
+  const selPosicao = document.getElementById('filtroPosicao');
+  const selClass = document.getElementById('filtroClassificacao');
+  const valPosicaoAtual = selPosicao.value;
+  const valClassAtual = selClass.value;
+
+  selPosicao.innerHTML = '<option value="">Todas</option>';
+  POSICOES.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    selPosicao.appendChild(opt);
+  });
+  const optPosicaoVazia = document.createElement('option');
+  optPosicaoVazia.value = '__EM_BRANCO__';
+  optPosicaoVazia.textContent = '(Em branco)';
+  selPosicao.appendChild(optPosicaoVazia);
+  selPosicao.value = valPosicaoAtual;
+
+  selClass.innerHTML = '<option value="">Todas</option>';
+  for (let n = 1; n <= MAX_CLASSIFICACAO; n++) {
+    const opt = document.createElement('option');
+    opt.value = n;
+    opt.textContent = n;
+    selClass.appendChild(opt);
+  }
+
+  const optClassVazia = document.createElement('option');
+  optClassVazia.value = '__EM_BRANCO__';
+  optClassVazia.textContent = '(Em branco)';
+  selClass.appendChild(optClassVazia);
+  selClass.value = valClassAtual;
+
+}
+
+function limparFiltros() {
+  document.getElementById('filtroPosicao').value = '';
+  document.getElementById('filtroClassificacao').value = '';
+  renderizar();
+}
+
+function renderizarResumo() {
+  const el = document.getElementById('resumo');
+  if (!el) return;
+
+  const jogadoresValidos = jogadores.filter(j => j.nome || j.apelido);
+  const total = jogadoresValidos.length;
+  const totalClassificados = jogadoresValidos.filter(j => j.classificacao !== '' && j.classificacao !== null && j.classificacao !== undefined).length;
+
+  const contagemPorPosicao = {};
+  POSICOES.forEach(p => contagemPorPosicao[p] = 0);
+  let semPosicao = 0;
+  jogadoresValidos.forEach(j => {
+    if (j.posicao && contagemPorPosicao.hasOwnProperty(j.posicao)) {
+      contagemPorPosicao[j.posicao]++;
+    } else {
+      semPosicao++;
+    }
+  });
+
+  let html = `
+    <div class="resumo-card total">
+      <div class="valor">${total}</div>
+      <div class="rotulo">Total de Jogadores</div>
+    </div>
+    <div class="resumo-card">
+      <div class="valor">${totalClassificados}</div>
+      <div class="rotulo">Classificados</div>
+    </div>
+  `;
+
+  POSICOES.forEach(p => {
+    html += `
+      <div class="resumo-card">
+        <div class="valor">${contagemPorPosicao[p]}</div>
+        <div class="rotulo">${p}</div>
+      </div>
+    `;
+  });
+
+  if (semPosicao > 0) {
+    html += `
+      <div class="resumo-card">
+        <div class="valor">${semPosicao}</div>
+        <div class="rotulo">Sem Posição</div>
+      </div>
+    `;
+  }
+
+  el.innerHTML = html;
+}
+
+function renderizar() {
+  popularFiltros();
+  renderizarResumo();
+
+
+  const filtroPosicao = document.getElementById('filtroPosicao').value;
+  const filtroClassificacao = document.getElementById('filtroClassificacao').value;
+
+  const tbody = document.getElementById('corpoTabela');
+  tbody.innerHTML = '';
+
+  const indicesFiltrados = [];
+  jogadores.forEach((j, idx) => {
+    let ok = true;
+
+    if (filtroPosicao === '__EM_BRANCO__') {
+      if (j.posicao) ok = false;
+    } else if (filtroPosicao && j.posicao !== filtroPosicao) {
+      ok = false;
+    }
+
+    if (filtroClassificacao === '__EM_BRANCO__') {
+      if (j.classificacao !== '' && j.classificacao !== null && j.classificacao !== undefined) ok = false;
+    } else if (filtroClassificacao && String(j.classificacao) !== String(filtroClassificacao)) {
+      ok = false;
+    }
+
+    if (ok) indicesFiltrados.push(idx);
+  });
+
+
+  if (indicesFiltrados.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.className = 'sem-resultado';
+    td.textContent = 'Nenhum jogador encontrado com os filtros selecionados.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    renderizarEscalacaoELinhas();
+    return;
+  }
+
+  indicesFiltrados.forEach((idx) => {
+    const j = jogadores[idx];
+    const tr = document.createElement('tr');
+    tr.id = 'linha-' + idx;
+
+
+    const tdNome = document.createElement('td');
+    const inputNome = document.createElement('input');
+    inputNome.type = 'text';
+    inputNome.placeholder = 'Nome completo';
+    inputNome.value = j.nome;
+    inputNome.oninput = (e) => atualizarCampo(idx, 'nome', e.target.value);
+    tdNome.appendChild(inputNome);
+
+    const tdApelido = document.createElement('td');
+    const inputApelido = document.createElement('input');
+    inputApelido.type = 'text';
+    inputApelido.placeholder = 'Apelido';
+    inputApelido.value = j.apelido;
+    inputApelido.oninput = (e) => atualizarCampo(idx, 'apelido', e.target.value);
+    tdApelido.appendChild(inputApelido);
+
+    const tdPosicao = document.createElement('td');
+    const selectPosicao = document.createElement('select');
+    const optVazia = document.createElement('option');
+    optVazia.value = '';
+    optVazia.textContent = '-- selecione --';
+    selectPosicao.appendChild(optVazia);
+    POSICOES.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = p;
+      if (j.posicao === p) opt.selected = true;
+      selectPosicao.appendChild(opt);
+    });
+    selectPosicao.onchange = (e) => atualizarCampo(idx, 'posicao', e.target.value);
+    tdPosicao.appendChild(selectPosicao);
+
+    const tdClass = document.createElement('td');
+    const inputClass = document.createElement('input');
+    inputClass.type = 'number';
+    inputClass.min = 1;
+    inputClass.max = MAX_CLASSIFICACAO;
+    inputClass.className = 'num-input';
+    inputClass.value = j.classificacao;
+    inputClass.oninput = (e) => {
+      let v = e.target.value;
+      if (v !== '' && (v < 1 || v > MAX_CLASSIFICACAO)) {
+        v = '';
+        e.target.value = '';
+      }
+      atualizarCampo(idx, 'classificacao', v);
+    };
+    tdClass.appendChild(inputClass);
+
+
+    const tdAcoes = document.createElement('td');
+    const btnRemover = document.createElement('button');
+    btnRemover.className = 'remove-btn';
+    btnRemover.textContent = 'Remover';
+    btnRemover.onclick = () => removerJogador(idx);
+    tdAcoes.appendChild(btnRemover);
+
+    tr.appendChild(tdNome);
+    tr.appendChild(tdApelido);
+    tr.appendChild(tdPosicao);
+    tr.appendChild(tdClass);
+    tr.appendChild(tdAcoes);
+
+    tbody.appendChild(tr);
+  });
+
+  renderizarEscalacaoELinhas();
+}
+
+function renderizarEscalacaoELinhas() {
+  // Atualizar cor das linhas classificadas
+  jogadores.forEach((j, idx) => {
+    const tr = document.getElementById('linha-' + idx);
+    if (!tr) return;
+    tr.classList.remove('classificado');
+    if (j.classificacao !== '' && j.classificacao !== null && j.classificacao !== undefined) {
+      tr.classList.add('classificado');
+    }
+  });
+
+  // Montar tabela agrupada 1-11 (colunas), cada coluna pode ter vários apelidos empilhados
+  const cabecalho = document.getElementById('cabecalhoEscalacao');
+  const corpo = document.getElementById('corpoEscalacao');
+  const linhaContagem = document.getElementById('linhaContagem');
+  cabecalho.innerHTML = '';
+  corpo.innerHTML = '';
+  linhaContagem.innerHTML = '';
+
+  for (let n = 1; n <= MAX_CLASSIFICACAO; n++) {
+    const th = document.createElement('th');
+    th.textContent = n;
+    cabecalho.appendChild(th);
+
+    const td = document.createElement('td');
+    const doGrupo = jogadores.filter(j => String(j.classificacao) === String(n) && j.apelido);
+
+    if (doGrupo.length > 0) {
+      doGrupo.forEach(j => {
+        const chip = document.createElement('span');
+        chip.className = 'apelido-chip';
+        chip.textContent = j.apelido;
+        td.appendChild(chip);
+      });
+    } else {
+      const vazio = document.createElement('span');
+      vazio.className = 'vazio-txt';
+      vazio.textContent = '-';
+      td.appendChild(vazio);
+    }
+    corpo.appendChild(td);
+
+    const tdContagem = document.createElement('td');
+    tdContagem.textContent = doGrupo.length;
+    linhaContagem.appendChild(tdContagem);
+  }
+}
+
+
+
+// ===================== SORTEIO DE EQUIPES =====================
+
+let ultimoSorteio = null; // guarda o resultado do último sorteio para exportação
+
+function embaralhar(array) {
+  const copia = array.slice();
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
+function mostrarAvisoSorteio(texto) {
+  const el = document.getElementById('avisoSorteio');
+  if (!texto) {
+    el.style.display = 'none';
+    el.textContent = '';
+    return;
+  }
+  el.style.display = 'block';
+  el.textContent = texto;
+}
+
+function sortearEquipes() {
+  const qtdTimesInput = document.getElementById('qtdTimes');
+  let qtdTimes = parseInt(qtdTimesInput.value, 10);
+
+  if (isNaN(qtdTimes) || qtdTimes < 2) {
+    mostrarAvisoSorteio('Informe uma quantidade válida de equipes (mínimo 2).');
+    document.getElementById('timesContainer').innerHTML = '';
+    ultimoSorteio = null;
+    return;
+  }
+
+  // Jogadores válidos (com apelido ou nome) e com classificação preenchida
+  const jogadoresClassificados = jogadores.filter(j =>
+    (j.apelido || j.nome) &&
+    j.classificacao !== '' && j.classificacao !== null && j.classificacao !== undefined
+  );
+
+  if (jogadoresClassificados.length === 0) {
+    mostrarAvisoSorteio('Nenhum jogador classificado encontrado. Preencha a classificação (1-11) de pelo menos um jogador antes de sortear.');
+    document.getElementById('timesContainer').innerHTML = '';
+    ultimoSorteio = null;
+    return;
+  }
+
+  // Monta times: cada time é um objeto { 1: apelido|null, 2: apelido|null, ... }
+  const times = [];
+  for (let t = 0; t < qtdTimes; t++) {
+    times.push({});
+  }
+
+  let avisos = [];
+
+  for (let n = 1; n <= MAX_CLASSIFICACAO; n++) {
+    const doGrupo = jogadoresClassificados.filter(j => String(j.classificacao) === String(n));
+
+    const embaralhados = embaralhar(doGrupo);
+
+    for (let t = 0; t < qtdTimes; t++) {
+      if (t < embaralhados.length) {
+        const jog = embaralhados[t];
+        times[t][n] = jog.apelido || jog.nome;
+      } else {
+        times[t][n] = null;
+      }
+    }
+
+    if (embaralhados.length < qtdTimes && embaralhados.length > 0) {
+      avisos.push(`Número ${n}: só há ${embaralhados.length} jogador(es) para ${qtdTimes} equipes — ${qtdTimes - embaralhados.length} equipe(s) ficarão sem jogador nesse número.`);
+    } else if (embaralhados.length === 0) {
+      avisos.push(`Número ${n}: nenhum jogador classificado — todas as equipes ficarão sem jogador nesse número.`);
+    }
+  }
+
+  ultimoSorteio = times;
+
+  if (avisos.length > 0) {
+    mostrarAvisoSorteio('⚠️ ' + avisos.join(' '));
+  } else {
+    mostrarAvisoSorteio(null);
+  }
+
+  renderizarTimes(times);
+}
+
+function renderizarTimes(times) {
+  const container = document.getElementById('timesContainer');
+  container.innerHTML = '';
+
+  times.forEach((time, idx) => {
+    const card = document.createElement('div');
+    card.className = 'time-card';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = `Equipe ${idx + 1}`;
+    card.appendChild(h3);
+
+    const table = document.createElement('table');
+    const tbody = document.createElement('tbody');
+
+    for (let n = 1; n <= MAX_CLASSIFICACAO; n++) {
+      const tr = document.createElement('tr');
+
+      const tdNum = document.createElement('td');
+      tdNum.className = 'num-col';
+      tdNum.textContent = n;
+      tr.appendChild(tdNum);
+
+
+      const tdApelido = document.createElement('td');
+      if (time[n]) {
+        tdApelido.className = 'apelido-col';
+        tdApelido.textContent = time[n];
+      } else {
+        tdApelido.className = 'vazio-col';
+        tdApelido.textContent = '(vazio)';
+      }
+      tr.appendChild(tdApelido);
+
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    card.appendChild(table);
+    container.appendChild(card);
+  });
+}
+
+function exportarTimesCsv() {
+  if (!ultimoSorteio) {
+    mostrarAvisoSorteio('Nenhum sorteio realizado ainda. Clique em "Sortear Equipes" primeiro.');
+    return;
+  }
+
+  let conteudo = 'Classificacao,' + ultimoSorteio.map((_, idx) => `Equipe ${idx + 1}`).join(',') + '\n';
+
+  for (let n = 1; n <= MAX_CLASSIFICACAO; n++) {
+    const linha = [n];
+
+    ultimoSorteio.forEach(time => {
+      linha.push(escaparCampoCsv(time[n] || ''));
+    });
+    conteudo += linha.join(',') + '\n';
+  }
+
+  const agora = new Date();
+  const timestamp = agora.getFullYear() + '-' +
+    String(agora.getMonth() + 1).padStart(2, '0') + '-' +
+    String(agora.getDate()).padStart(2, '0') + '_' +
+    String(agora.getHours()).padStart(2, '0') + '-' +
+    String(agora.getMinutes()).padStart(2, '0');
+
+  const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sorteio_equipes_${timestamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+carregarMaxClassificacao();
+atualizarTitulosEPlaceholders();
+carregar();
+renderizar();
+</script>
+
+
+
+
+</body>
+</html>
