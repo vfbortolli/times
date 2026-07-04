@@ -135,6 +135,17 @@
     font-size: 13px;
     font-weight: bold;
     word-break: break-word;
+    cursor: grab;
+  }
+  .escalacao-table .apelido-chip.dragging {
+    opacity: 0.4;
+  }
+  .escalacao-table .apelido-chip:active {
+    cursor: grabbing;
+  }
+  .escalacao-table td.drag-over {
+    background: #ffe999 !important;
+    outline: 2px dashed #1e5631;
   }
   .escalacao-table .vazio-txt {
     color: #aaa;
@@ -1067,13 +1078,60 @@ function renderizarEscalacaoELinhas() {
     cabecalho.appendChild(th);
 
     const td = document.createElement('td');
-    const doGrupo = jogadores.filter(j => String(j.classificacao) === String(n) && j.apelido);
+    td.dataset.classificacao = String(n);
 
-    if (doGrupo.length > 0) {
-      doGrupo.forEach(j => {
+    td.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      td.classList.add('drag-over');
+    });
+
+    td.addEventListener('dragleave', function() {
+      td.classList.remove('drag-over');
+    });
+
+    td.addEventListener('drop', function(e) {
+      e.preventDefault();
+      td.classList.remove('drag-over');
+      try {
+        const payload = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (!payload || payload.jogadorIdx === undefined) return;
+        if (String(payload.origem) === String(n)) return;
+
+        jogadores[payload.jogadorIdx].classificacao = String(n);
+        salvar();
+        renderizar();
+      } catch (err) {
+        console.warn('Falha ao mover jogador na classificação:', err);
+      }
+    });
+
+    const jogadoresDoGrupo = [];
+    jogadores.forEach((j, idx) => {
+      if (String(j.classificacao) === String(n) && (j.apelido || j.nome)) {
+        jogadoresDoGrupo.push({ jogador: j, idx });
+      }
+    });
+
+    if (jogadoresDoGrupo.length > 0) {
+      jogadoresDoGrupo.forEach(({ jogador, idx }) => {
         const chip = document.createElement('span');
         chip.className = 'apelido-chip';
-        chip.textContent = j.apelido;
+        chip.draggable = true;
+        chip.textContent = jogador.apelido || jogador.nome;
+        chip.dataset.jogadorIdx = idx;
+        chip.dataset.classificacaoOrigem = String(n);
+
+        chip.addEventListener('dragstart', function(e) {
+          chip.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', JSON.stringify({ jogadorIdx: idx, origem: String(n) }));
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        chip.addEventListener('dragend', function() {
+          chip.classList.remove('dragging');
+        });
+
         td.appendChild(chip);
       });
     } else {
@@ -1085,7 +1143,7 @@ function renderizarEscalacaoELinhas() {
     corpo.appendChild(td);
 
     const tdContagem = document.createElement('td');
-    tdContagem.textContent = doGrupo.length;
+    tdContagem.textContent = jogadoresDoGrupo.length;
     linhaContagem.appendChild(tdContagem);
   }
 }
